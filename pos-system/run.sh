@@ -20,7 +20,7 @@ declare -A regions_ports=(
 echo "Starting multi-region POS deployment..."
 
 echo "Building Docker image from pos-system/ folder..."
-docker build -t edgeops-pos pos-system/
+docker build -t edgeops-pos .
 
 for region in "${!regions_ports[@]}"; do
   port=${regions_ports[$region]}
