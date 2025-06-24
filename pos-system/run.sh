@@ -19,15 +19,14 @@ declare -A regions_ports=(
 
 echo "Starting multi-region POS deployment..."
 
+echo "Building Docker image from pos-system/ folder..."
+docker build -t edgeops-pos pos-system/
+
 for region in "${!regions_ports[@]}"; do
   port=${regions_ports[$region]}
   container_name="pos-${region}"
 
   echo "Processing region: $region (port $port)..."
-
-  # Build Docker image for the region
-  echo "Building Docker image for $region..."
-  docker build -t edgeops-pos-$region ./$region
 
   # Stop running container if exists
   if [ "$(docker ps -q -f name=$container_name)" ]; then
@@ -43,7 +42,7 @@ for region in "${!regions_ports[@]}"; do
 
   # Run container on assigned port
   echo "Starting container $container_name on port $port..."
-  docker run -d -p ${port}:5000 --name $container_name edgeops-pos-$region
+  docker run -d -p ${port}:5000 --name $container_name edgeops-pos
 
   echo "Region $region deployed successfully."
 done
