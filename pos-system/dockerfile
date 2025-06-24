@@ -1,16 +1,16 @@
-# Use official Python image as base
+# Use official Python base image
 FROM python:3.9-slim
 
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first (for caching)
+# Copy dependencies
 COPY requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy app source code
+# Copy app source and templates
 COPY app.py .
 COPY templates ./templates
 
