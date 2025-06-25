@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  flask_app:
+    build: .
+    container_name: flask_app
+    expose:
+      - 5000
+    networks:
+      - appnet
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_proxy
+    depends_on:
+      - flask_app
+    ports:
+      - "8080:80"   # Change this to 8081, 8082 for 2nd and 3rd deployments
+    volumes:
+      - ./static:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - appnet
+
+networks:
+  appnet:

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>McDonald's POS System</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 10px;
+  }
+  h1 {
+    text-align: center;
+    color: #d62a20;
+  }
+  .menu {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, auto);
+    gap: 15px 10px;
+    max-width: 100%;
+  }
+  .menu-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fff8f0;
+    text-align: center;
+  }
+  .menu-item h3 {
+    margin: 0 0 8px 0;
+    color: #d62a20;
+  }
+  button {
+    background-color: #d62a20;
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  button:hover {
+    background-color: #a21e16;
+  }
+  .order {
+    margin-top: 20px;
+    background-color: #f5f5f5;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    text-align: left;
+    padding: 6px 4px;
+    border-bottom: 1px solid #ddd;
+  }
+  .totals {
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  .actions {
+    margin-top: 15px;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<h1>McDonald's POS</h1>
+
+<div class="menu" id="menu">
+  <!-- Menu items inserted here dynamically -->
+</div>
+
+<div class="order" id="orderSection" style="display:none;">
+  <h2>Current Order</h2>
+  <table id="orderTable">
+    <thead>
+      <tr><th>Item</th><th>Qty</th><th>Price</th><th></th></tr>
+    </thead>
+    <tbody>
+      <!-- Order items will appear here -->
+    </tbody>
+  </table>
+  <div class="totals" id="totals">
+    <!-- Totals appear here -->
+  </div>
+  <div class="actions">
+    <button id="clearOrderBtn">Clear Order</button>
+    <button id="completeOrderBtn">Complete Order</button>
+  </div>
+</div>
+
+<script>
+  const TAX_RATE = 0.07; // 7% tax
+
+  const menuItems = [
+    { id: 1, name: "Big Mac", price: 4.29 },
+    { id: 2, name: "Quarter Pounder", price: 3.99 },
+    { id: 3, name: "McChicken", price: 3.49 },
+    { id: 4, name: "French Fries (Medium)", price: 1.89 },
+    { id: 5, name: "Chicken Nuggets (6 pcs)", price: 2.99 },
+    { id: 6, name: "Coca-Cola (Medium)", price: 1.49 },
+    { id: 7, name: "McFlurry", price: 2.79 },
+    { id: 8, name: "Apple Pie", price: 1.19 }
+  ];
+
+  let order = [];
+
+  // Render menu
+  const menuDiv = document.getElementById('menu');
+  menuItems.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'menu-item';
+    div.innerHTML = `
+      <h3>${item.name}</h3>
+      <p>Price: $${item.price.toFixed(2)}</p>
+      <button onclick="addToOrder(${item.id})">Add to Order</button>
+    `;
+    menuDiv.appendChild(div);
+  });
+
+  function addToOrder(id) {
+    const item = menuItems.find(i => i.id === id);
+    const existing = order.find(i => i.id === id);
+    if (existing) {
+      existing.qty++;
+    } else {
+      order.push({...item, qty: 1});
+    }
+    updateOrderDisplay();
+  }
+
+  function removeFromOrder(id) {
+    order = order.filter(i => i.id !== id);
+    updateOrderDisplay();
+  }
+
+  function changeQty(id, delta) {
+    const item = order.find(i => i.id === id);
+    if (!item) return;
+    item.qty += delta;
+    if (item.qty <= 0) {
+      removeFromOrder(id);
+    }
+    updateOrderDisplay();
+  }
+
+  function updateOrderDisplay() {
+    const orderSection = document.getElementById('orderSection');
+    const tbody = document.querySelector('#orderTable tbody');
+    tbody.innerHTML = '';
+
+    if (order.length === 0) {
+      orderSection.style.display = 'none';
+      return;
+    }
+
+    orderSection.style.display = 'block';
+
+    let subtotal = 0;
+
+    order.forEach(item => {
+      const row = document.createElement('tr');
+      const price = item.price * item.qty;
+      subtotal += price;
+
+      row.innerHTML = `
+        <td>${item.name}</td>
+        <td>
+          <button onclick="changeQty(${item.id}, -1)">-</button>
+          ${item.qty}
+          <button onclick="changeQty(${item.id}, 1)">+</button>
+        </td>
+        <td>$${price.toFixed(2)}</td>
+        <td><button onclick="removeFromOrder(${item.id})">Remove</button></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    const tax = subtotal * TAX_RATE;
+    const total = subtotal + tax;
+
+    const totalsDiv = document.getElementById('totals');
+    totalsDiv.innerHTML = `
+      Subtotal: $${subtotal.toFixed(2)}<br>
+      Tax (7%): $${tax.toFixed(2)}<br>
+      <strong>Total: $${total.toFixed(2)}</strong>
+    `;
+  }
+
+  document.getElementById('clearOrderBtn').addEventListener('click', () => {
+    order = [];
+    updateOrderDisplay();
+  });
+
+  document.getElementById('completeOrderBtn').addEventListener('click', () => {
+    if (order.length === 0) {
+      alert('Your order is empty!');
+      return;
+    }
+    const orderData = order.map(item => ({
+      id: item.id,
+      name: item.name,
+      qty: item.qty,
+      price: item.price
+    }));
+
+    fetch('/submit_order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order: orderData })
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert('Order completed and sent to database! Thank you!');
+      order = [];
+      updateOrderDisplay();
+    })
+    .catch(err => {
+      alert('Error submitting order. Please try again.');
+      console.error(err);
+    });
+  });
+</script>
+
+</body>
+</html>
