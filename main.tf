@@ -319,3 +319,18 @@ output "rds_replica_az3_endpoint" {
   description = "Aurora Replica AZ3 Endpoint"
   value       = aws_rds_cluster.replica_az3.endpoint
 }
+
+output "private_subnet_ids" {
+  description = "List of private subnet IDs"
+  value       = aws_subnet.private[*].id
+}
+
+output "rds_sg_id" {
+  description = "RDS security group ID"
+  value       = aws_security_group.rds_sg.id
+}
+
+output "ecs_sg_id" {
+  description = "ECS security group ID"
+  value       = aws_security_group.ecs_sg.id
+}
